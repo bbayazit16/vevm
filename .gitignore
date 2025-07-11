@@ -4,4 +4,5 @@
 *.vos
 *.d
 *.glob
+*.cache
 .DS_STORE

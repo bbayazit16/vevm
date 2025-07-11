@@ -1,11 +1,11 @@
 Inductive Instruction : Type :=
     | IPush (n: nat)
+    | IMstore
+    | IMload
     | IAdd
-    (* | MStore
-    | MLoad *)
     | IOutput
     | IEq
-    | IJmp
+    | IJmpi
     | IDup
     | IPop
     | ISwap.
