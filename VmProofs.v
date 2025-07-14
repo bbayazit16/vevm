@@ -24,56 +24,6 @@ Proof.
     destruct (List.nth_error program (pc state)) as [instr|]; [|discriminate].
     destruct instr; (destruct (interpret _ state); [apply IHfuel; exact H | discriminate]) || exact H.
 Qed.
-(* Proof.
-  intros.
-  
-  generalize dependent output_state.
-  generalize dependent state.
-  
-  induction fuel as [|fuel' IHfuel].
-  - intros state output_state interpret_success.
-    (* don't remove in; times out *)
-    compute in interpret_success.
-    discriminate.
-  - intros state output_state interpret_success.
-    (* could replace with *)
-    (* simpl in interpret_success. *)
-    unfold interpret_all' in interpret_success.
-    fold interpret_all' in interpret_success.
-    simpl.
-    destruct (List.nth_error program (pc state)) as [instr|].
-    + destruct instr.
-      * destruct (interpret (IPush n) state) as [new_state|].
-        -- apply (IHfuel new_state output_state interpret_success).
-        -- discriminate.
-      * destruct (interpret IMstore state) as [new_state|].
-        -- apply (IHfuel new_state output_state interpret_success).
-        -- discriminate.
-      * destruct (interpret IMload state) as [new_state|].
-        -- apply (IHfuel new_state output_state interpret_success).
-        -- discriminate.
-      * destruct (interpret IAdd state) as [new_state|].
-        -- apply (IHfuel new_state output_state interpret_success).
-        -- discriminate.
-      * exact interpret_success.
-      * destruct (interpret IEq state) as [new_state|].
-        -- apply (IHfuel new_state output_state interpret_success).
-        -- discriminate.
-      * destruct (interpret IJmpi state) as [new_state|].
-        -- apply (IHfuel new_state output_state interpret_success).
-        -- discriminate.
-      * destruct (interpret IDup state) as [new_state|].
-        -- apply (IHfuel new_state output_state interpret_success).
-        -- discriminate.
-      * destruct (interpret IPop state) as [new_state|].
-        -- apply (IHfuel new_state output_state interpret_success).
-        -- discriminate.
-      * destruct (interpret ISwap state) as [new_state|].
-        -- apply (IHfuel new_state output_state interpret_success).
-        -- discriminate.
-    + discriminate interpret_success.
-Qed. *)
-
 
 Theorem more_fuel_ok:
   forall instrs state output_state fuel more_fuel,
@@ -109,16 +59,6 @@ Proof.
   intros fuel.
   unfold interpret_all_with_fuel, interpret_all'.
   destruct fuel; simpl; eexists; reflexivity.
-  (* destruct fuel as [|fuel'].
-  - unfold interpret_all_with_fuel.
-    unfold interpret_all'.
-    eexists.
-    reflexivity.
-  - unfold interpret_all_with_fuel.
-    unfold interpret_all'.
-    simpl.
-    eexists.
-    reflexivity. *)
 Qed.
 
 Theorem empty_program_result:
@@ -131,7 +71,6 @@ Proof.
   reflexivity.
 Qed.
 
-(* need a better name for this *)
 Theorem more_fuel_output_same:
     forall program fuel more_fuel,
     more_fuel >= fuel ->
