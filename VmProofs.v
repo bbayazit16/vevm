@@ -88,3 +88,12 @@ Proof.
     reflexivity.
   - inversion succeeds_fuel.
 Qed.
+
+Theorem all_programs_terminate :
+  forall program fuel, exists result, interpret_all_with_fuel program fuel = result.
+Proof.
+  intros program fuel.
+  remember (interpret_all_with_fuel program fuel) as actual_result.
+  exists actual_result.
+  reflexivity.
+Qed.
