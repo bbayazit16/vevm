@@ -1,4 +1,5 @@
 Require Import Vevm.Instruction.
+Require Import Vevm.Semantics.
 Require Import Vevm.Vm.
 
 From Stdlib Require Import List.
@@ -97,3 +98,238 @@ Proof.
   exists actual_result.
   reflexivity.
 Qed.
+
+Theorem interpret_complete :
+  forall instructions instruction stack pc memory out_state,
+    nth_error instructions pc = Some instruction ->
+    step {| stack := stack; pc := pc; memory := memory |} instructions out_state ->
+    interpret instruction {| stack := stack; pc := pc; memory := memory |} = Ok out_state.
+Proof.
+  intros instructions instruction stack pc memory out_state.
+  intros nth_ok step_ok.
+  
+  inversion step_ok.
+  - subst.
+    rewrite nth_ok in H4.
+    injection H4 as H4.
+    subst.
+    reflexivity.
+  - subst.
+    rewrite nth_ok in H4.
+    injection H4 as H4.
+    subst.
+    reflexivity.
+  - subst.
+    rewrite nth_ok in H4.
+    injection H4 as H4.
+    subst.
+    reflexivity.
+  - subst.
+    rewrite nth_ok in H2.
+    injection H2 as H2.
+    subst.
+    simpl.
+    rewrite H6.
+    reflexivity.
+  - subst.
+    rewrite nth_ok in H4.
+    injection H4 as H4.
+    subst.
+    reflexivity.
+  - subst.
+    rewrite nth_ok in H4.
+    injection H4 as H4.
+    subst.
+    reflexivity.
+  - subst.
+    rewrite nth_ok in H4.
+    injection H4 as H4.
+    subst.
+    reflexivity.
+  - subst.
+    rewrite nth_ok in H2.
+    injection H2 as H2.
+    subst.
+    destruct should_jump as [|[|n]].
+      * simpl. subst. reflexivity.
+      * exfalso. apply H6. reflexivity.
+      * simpl. subst. reflexivity.
+  - subst.
+    rewrite nth_ok in H4.
+    injection H4 as H4.
+    subst.
+    reflexivity.
+  - subst.
+    rewrite nth_ok in H4.
+    injection H4 as H4.
+    subst.
+    reflexivity.
+  - subst.
+    rewrite nth_ok in H4.
+    injection H4 as H4.
+    subst.
+    reflexivity.
+Qed.
+
+(* Theorem interpret_complete:
+    forall state instruction output_state,
+    step state [instruction] output_state -> interpret instruction state = Ok output_state.
+Proof.
+  intros state instruction output_state Hstep.
+  inversion Hstep.
+  - destruct pc as [|pc'].
+    + simpl in H.
+      injection H as H.
+      subst instruction.
+      simpl.
+      reflexivity.
+    + exfalso.
+      destruct pc'; simpl in H; discriminate H.
+  - destruct pc as [|pc'].
+    + simpl in H.
+      injection H as H_eq.
+      subst instruction.
+      simpl.
+      subst.
+      reflexivity.
+    + exfalso.
+      destruct pc'; simpl in H; discriminate H.
+  - destruct pc as [|pc'].
+    + simpl in H.
+      injection H as H_eq.
+      subst instruction.
+      simpl.
+      subst.
+      reflexivity.
+    + exfalso.
+      destruct pc'; simpl in H; discriminate H.
+  - destruct pc as [|pc'].
+    + simpl in H.
+      injection H as H_eq.
+      subst instruction.
+      simpl.
+      subst.
+      rewrite H1.
+      reflexivity.
+    + exfalso.
+      destruct pc'; simpl in H; discriminate H.
+  - destruct pc as [|pc'].
+    + simpl in H.
+      injection H as H_eq.
+      subst instruction.
+      simpl.
+      subst.
+      reflexivity.
+    + exfalso.
+      destruct pc'; simpl in H; discriminate H.
+  - destruct pc as [|pc'].
+    + simpl in H.
+      injection H as H_eq.
+      subst instruction.
+      simpl.
+      subst.
+      reflexivity.
+    + exfalso.
+      destruct pc'; simpl in H; discriminate H.
+  - destruct pc as [|pc'].
+    + simpl in H.
+      injection H as H_eq.
+      subst instruction.
+      simpl.
+      subst.
+      reflexivity.
+    + exfalso.
+      destruct pc'; simpl in H; discriminate H.
+  - destruct pc as [|pc'].
+    + simpl in H.
+      injection H as H_eq.
+      subst instruction.
+      simpl.
+      destruct should_jump as [|[|n]].
+      * simpl. subst. reflexivity.
+      * exfalso. apply H1. reflexivity.
+      * simpl. subst. reflexivity.
+    + exfalso.
+      destruct pc'; simpl in H; discriminate H.
+  - destruct pc as [|pc'].
+    + simpl in H.
+      injection H as H_eq.
+      subst instruction.
+      simpl.
+      subst.
+      reflexivity.
+    + exfalso.
+      destruct pc'; simpl in H; discriminate H.
+  - destruct pc as [|pc'].
+    + simpl in H.
+      injection H as H_eq.
+      subst instruction.
+      simpl.
+      subst.
+      reflexivity.
+    + exfalso.
+      destruct pc'; simpl in H; discriminate H.
+  - destruct pc as [|pc'].
+    + simpl in H.
+      injection H as H_eq.
+      subst instruction.
+      simpl.
+      subst.
+      reflexivity.
+    + exfalso.
+      destruct pc'; simpl in H; discriminate H.
+Qed. *)
+
+Lemma nth_error_errors:
+  forall (instruction: Instruction) n,
+  List.nth_error [instruction] (S (n)) = None.
+Proof.
+  intros instruction n.
+  simpl.
+  destruct n.
+  - reflexivity.
+  - reflexivity.
+Qed.
+
+
+Theorem interpret_sound_general:
+  forall instrs instr stack pc memory output_state,
+    nth_error instrs pc = Some instr ->
+    interpret instr {|
+      stack := stack;
+      pc := pc;
+      memory := memory
+    |} = Ok output_state ->
+    step {| stack := stack; pc := pc; memory := memory |} instrs output_state.
+Proof.
+  
+(* Theorem interpret_sound:
+    forall state instruction output_state,
+    interpret instruction state = Ok output_state ->
+    step state [instruction] output_state.
+Proof.
+  intros state instruction output_state H_interp_result.
+
+  (* destruct (List.nth_error [instruction] state.(pc)) as [i|]. *)
+  destruct state as [stack pc memory].
+  simpl in *.
+
+  destruct instruction.
+  - simpl in *.
+    injection H_interp_result as H_interp_result.
+    rewrite <- H_interp_result.
+    apply SIPush. *)
+
+
+    (*   
+    injection H_interp_result as H_interp_result.
+    rewrite <- H_interp_result.
+    (* clear H_interp_result. *)
+    (* assert (H_case: i = (IPush n)).
+    admit.
+    subst i. *)
+    
+    destruct state as [stack pc memory].
+    apply SIPush.
+    simpl in *.
+    subst output_state. *)
