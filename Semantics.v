@@ -97,3 +97,32 @@ Inductive step : VmState -> list Instruction -> VmState -> Prop :=
             instructions
             {| stack := b :: a :: stack'; pc := pc + 1; memory := memory |}
 .
+
+Inductive steps : VmState -> list Instruction -> VmState -> Prop :=
+  | steps_refl : forall state instrs,
+      steps state instrs state
+  | steps_trans : forall state1 state2 state3 instrs,
+      step state1 instrs state2 ->
+      steps state2 instrs state3 ->
+      steps state1 instrs state3.
+
+
+Lemma example_steps :
+  steps 
+    {| stack := []; pc := 0; memory := NatMap.empty nat |}
+    [IPush 5; IPush 3]
+    {| stack := [3; 5]; pc := 2; memory := NatMap.empty nat |}.
+Proof.
+  apply steps_trans with 
+    (state2 := {| stack := [5]; pc := 1; memory := NatMap.empty nat |}).
+  
+  - apply SIPush. reflexivity.
+  
+  - apply steps_trans with 
+      (state2 := {| stack := [3; 5]; pc := 2; memory := NatMap.empty nat |}).
+    
+    + apply SIPush. reflexivity.
+    
+    + apply steps_refl.
+Qed.
+

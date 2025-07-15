@@ -99,6 +99,13 @@ Proof.
   reflexivity.
 Qed.
 
+Ltac solve_complete nth_ok H :=
+    subst;
+    rewrite nth_ok in H;
+    injection H as H;
+    subst;
+    reflexivity.
+
 Theorem interpret_complete :
   forall instructions instruction stack pc memory out_state,
     nth_error instructions pc = Some instruction ->
@@ -109,21 +116,9 @@ Proof.
   intros nth_ok step_ok.
   
   inversion step_ok.
-  - subst.
-    rewrite nth_ok in H4.
-    injection H4 as H4.
-    subst.
-    reflexivity.
-  - subst.
-    rewrite nth_ok in H4.
-    injection H4 as H4.
-    subst.
-    reflexivity.
-  - subst.
-    rewrite nth_ok in H4.
-    injection H4 as H4.
-    subst.
-    reflexivity.
+  - solve_complete nth_ok H4.
+  - solve_complete nth_ok H4.
+  - solve_complete nth_ok H4.
   - subst.
     rewrite nth_ok in H2.
     injection H2 as H2.
@@ -131,21 +126,9 @@ Proof.
     simpl.
     rewrite H6.
     reflexivity.
-  - subst.
-    rewrite nth_ok in H4.
-    injection H4 as H4.
-    subst.
-    reflexivity.
-  - subst.
-    rewrite nth_ok in H4.
-    injection H4 as H4.
-    subst.
-    reflexivity.
-  - subst.
-    rewrite nth_ok in H4.
-    injection H4 as H4.
-    subst.
-    reflexivity.
+  - solve_complete nth_ok H4.
+  - solve_complete nth_ok H4.
+  - solve_complete nth_ok H4.
   - subst.
     rewrite nth_ok in H2.
     injection H2 as H2.
@@ -154,21 +137,9 @@ Proof.
       * simpl. subst. reflexivity.
       * exfalso. apply H6. reflexivity.
       * simpl. subst. reflexivity.
-  - subst.
-    rewrite nth_ok in H4.
-    injection H4 as H4.
-    subst.
-    reflexivity.
-  - subst.
-    rewrite nth_ok in H4.
-    injection H4 as H4.
-    subst.
-    reflexivity.
-  - subst.
-    rewrite nth_ok in H4.
-    injection H4 as H4.
-    subst.
-    reflexivity.
+  - solve_complete nth_ok H4.
+  - solve_complete nth_ok H4.
+  - solve_complete nth_ok H4.
 Qed.
 
 (* Theorem interpret_complete:
