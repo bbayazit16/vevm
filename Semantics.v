@@ -15,14 +15,6 @@ Inductive step : VmState -> list Instruction -> VmState -> Prop :=
             instructions
             {| stack := n :: stack; pc := pc + 1; memory := memory |}
 
-    | SIAdd : forall stack pc memory instructions a b stack',
-        List.nth_error instructions pc = Some IAdd ->
-        stack = a :: b :: stack' ->
-        step
-            {| stack := stack; pc := pc; memory := memory |}
-            instructions
-            {| stack := (a + b) :: stack'; pc := pc + 1; memory := memory |}
-
     | SIMstore : forall stack pc memory instructions offset value stack',
         List.nth_error instructions pc = Some IMstore ->
         stack = offset :: value :: stack' ->
@@ -39,6 +31,14 @@ Inductive step : VmState -> list Instruction -> VmState -> Prop :=
             {| stack := stack; pc := pc; memory := memory |}
             instructions
             {| stack := found :: stack'; pc := pc + 1; memory := memory |}
+
+    | SIAdd : forall stack pc memory instructions a b stack',
+        List.nth_error instructions pc = Some IAdd ->
+        stack = a :: b :: stack' ->
+        step
+            {| stack := stack; pc := pc; memory := memory |}
+            instructions
+            {| stack := (a + b) :: stack'; pc := pc + 1; memory := memory |}
 
     | SIOutput : forall stack pc memory instructions a rest,
         List.nth_error instructions pc = Some IOutput ->
@@ -64,6 +64,11 @@ Inductive step : VmState -> list Instruction -> VmState -> Prop :=
             instructions
             {| stack := stack'; pc := address; memory := memory |}
 
+    (* ONLY if should_jump != 1; not just 0, although 0 is probably
+    the most common way to do this. I included this because simplify
+    specifying == 0 makes things more complicated from a well-defined
+    program perspective.
+    *)
     | SIJmpiFalse : forall stack pc memory instructions should_jump address stack',
         List.nth_error instructions pc = Some IJmpi ->
         stack = should_jump :: address :: stack' ->

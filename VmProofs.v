@@ -5,6 +5,7 @@ Require Import Vevm.Vm.
 From Stdlib Require Import List.
 From Stdlib Require Import Lia.
 From Stdlib Require Import String.
+From Stdlib Require Import Arith.PeanoNat.
 
 Import ListNotations.
 Open Scope string_scope.
@@ -143,43 +144,122 @@ Proof.
 Qed.
 
 Theorem interpret_sound:
-  forall instrs instr stack pc memory output_state,
-    nth_error instrs pc = Some instr ->
-    interpret instr {|
+  forall instructions instruction stack pc memory output_state,
+    nth_error instructions pc = Some instruction ->
+    interpret instruction {|
       stack := stack;
       pc := pc;
       memory := memory
     |} = Ok output_state ->
-    step {| stack := stack; pc := pc; memory := memory |} instrs output_state.
+    step {| stack := stack; pc := pc; memory := memory |} instructions output_state.
 Proof.
-  
-(* Theorem interpret_sound:
-    forall state instruction output_state,
-    interpret instruction state = Ok output_state ->
-    step state [instruction] output_state.
-Proof.
-  intros state instruction output_state H_interp_result.
-
-  (* destruct (List.nth_error [instruction] state.(pc)) as [i|]. *)
-  destruct state as [stack pc memory].
-  simpl in *.
+  intros instructions instruction stack pc memory output_state.
+  intros nth_ok interpret_ok.
 
   destruct instruction.
   - simpl in *.
-    injection H_interp_result as H_interp_result.
-    rewrite <- H_interp_result.
-    apply SIPush. *)
-
-
-    (*   
-    injection H_interp_result as H_interp_result.
-    rewrite <- H_interp_result.
-    (* clear H_interp_result. *)
-    (* assert (H_case: i = (IPush n)).
-    admit.
-    subst i. *)
-    
-    destruct state as [stack pc memory].
+    injection interpret_ok as H_instr_eq.
+    rewrite <- H_instr_eq.
     apply SIPush.
-    simpl in *.
-    subst output_state. *)
+    exact nth_ok.
+ - simpl in *.
+    destruct stack as [| offset others].
+    discriminate interpret_ok.
+    destruct others as [| value s'].
+    discriminate interpret_ok.
+
+    inversion interpret_ok as [H_eq_vm].
+    apply SIMstore.
+    exact nth_ok.
+    reflexivity.
+  - simpl in *.
+    destruct stack as [| offset others].
+    discriminate interpret_ok.
+
+    destruct NatMap.find as [prev_found' |] eqn:found.
+    + injection interpret_ok as H_instr_eq.
+      subst.
+      (* For some reason, unless you explicitly pass offset := offset
+      Coq can't find variable offset
+      *)
+      apply SIMload with (offset := offset).
+      * exact nth_ok.
+      * reflexivity.
+      * exact found.
+    + discriminate interpret_ok.
+ - simpl in *.
+    destruct stack as [| a others].
+    discriminate interpret_ok.
+    destruct others as [| b s'].
+    discriminate interpret_ok.
+
+    inversion interpret_ok as [H_eq_vm].
+    apply SIAdd.
+    exact nth_ok.
+    reflexivity.
+  - simpl in *.
+    destruct stack as [| output_value rest].
+    discriminate interpret_ok.
+
+    inversion interpret_ok as [H_eq_vm].
+    apply SIOutput with (rest := rest).
+    exact nth_ok.
+    reflexivity.
+   - simpl in *.
+    destruct stack as [| a others].
+    discriminate interpret_ok.
+    destruct others as [| b s'].
+    discriminate interpret_ok.
+
+    inversion interpret_ok as [H_eq_vm].
+    apply SIEq.
+    exact nth_ok.
+    reflexivity.
+ - simpl in *.
+    destruct stack as [| jump_ineq others].
+    discriminate interpret_ok.
+    destruct others as [| address s'].
+    discriminate interpret_ok.
+
+    destruct (Nat.eqb jump_ineq 1) eqn:do_jump.
+      + inversion interpret_ok as [H_eq_vm].
+        subst.
+        apply SIJmpiTrue.
+        * exact nth_ok.
+        * apply Nat.eqb_eq in do_jump.
+          rewrite <- do_jump.
+          reflexivity.
+      + inversion interpret_ok as [H_eq_vm].
+        subst.
+        apply Nat.eqb_neq in do_jump.
+        apply SIJmpiFalse with (should_jump := jump_ineq) (address := address).
+        * exact nth_ok.
+        * reflexivity.
+        * exact do_jump.
+  - simpl in *.
+    destruct stack as [| a rest].
+    discriminate interpret_ok.
+
+    inversion interpret_ok as [H_eq_vm].
+    apply SIDup.
+    exact nth_ok.
+    reflexivity.
+  - simpl in *.
+    destruct stack as [| a rest].
+    discriminate interpret_ok.
+
+    inversion interpret_ok as [H_eq_vm].
+    apply SIPop with (a := a).
+    exact nth_ok.
+    reflexivity.
+  - simpl in *.
+    destruct stack as [| a others].
+    discriminate interpret_ok.
+    destruct others as [| b s'].
+    discriminate interpret_ok.
+
+    inversion interpret_ok as [H_eq_vm].
+    apply SISwap.
+    exact nth_ok.
+    reflexivity.
+Qed.
