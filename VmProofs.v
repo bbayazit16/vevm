@@ -100,6 +100,61 @@ Proof.
   reflexivity.
 Qed.
 
+(* Haltedness and completion is not the same thing in this VM, because
+  interpret_all eventually hits 'PC out of bounds' unless there's an
+  IOutput.
+
+  In other words, all programs must end with 'IOutput'.
+*)
+Definition halts (state : VmState) (instructions : list Instruction) : Prop :=
+  exists output,
+    state.(stack) = [output] /\
+    List.nth_error instructions (state.(pc) - 1) = Some IOutput.
+
+Ltac solve_halted instruction initial_state interpret_ok IH :=
+  destruct (interpret instruction initial_state) as [next_state|];
+  [ apply IH with (initial_state := next_state); exact interpret_ok
+    | discriminate interpret_ok ].
+
+Theorem ok_implies_halted :
+  forall fuel instructions output_state,
+    interpret_all' instructions
+      {| stack := []; pc := 0 ; memory := NatMap.empty nat |} fuel = Ok output_state ->
+      halts output_state instructions.
+Proof.
+  intros fuel.
+  generalize {| stack := []; pc := 0; memory := NatMap.empty nat |} as initial_state.
+
+  induction fuel as [|fuel IH_fuel]; intros initial_state instructions output_state interpret_ok.
+  - discriminate interpret_ok.
+  - simpl in interpret_ok.
+    destruct (nth_error instructions (pc initial_state)) eqn:nth_err.
+    + destruct i.
+      * solve_halted (IPush n) initial_state interpret_ok IH_fuel.
+      * solve_halted IMstore initial_state interpret_ok IH_fuel.
+      * solve_halted IMload initial_state interpret_ok IH_fuel.
+      * solve_halted IAdd initial_state interpret_ok IH_fuel.
+      * destruct initial_state as [stack pc memory].
+        destruct stack as [|a rest]; simpl in interpret_ok.
+        -- discriminate interpret_ok.
+        -- injection interpret_ok as H_output_eq.
+           subst.
+           exists a.
+           split.
+           ++ reflexivity.
+           ++ simpl.
+              assert (pc_eq: pc + 1 - 1 = pc) by lia.
+              rewrite pc_eq.
+              simpl in nth_err.
+              exact nth_err.
+      * solve_halted IEq initial_state interpret_ok IH_fuel.
+      * solve_halted IJmpi initial_state interpret_ok IH_fuel.
+      * solve_halted IDup initial_state interpret_ok IH_fuel.
+      * solve_halted IPop initial_state interpret_ok IH_fuel.
+      * solve_halted ISwap initial_state interpret_ok IH_fuel.
+    + discriminate interpret_ok.
+Qed.
+
 Ltac solve_complete nth_ok H :=
     subst;
     rewrite nth_ok in H;

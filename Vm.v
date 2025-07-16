@@ -105,7 +105,7 @@ Fixpoint interpret_all' (instrs: list Instruction) (state: VmState) (fuel: nat) 
 Definition interpret_all (instrs: list Instruction): VmResult :=
     interpret_all' instrs {| stack := []; pc := 0 ; memory := NatMap.empty nat |} 1000.
 
-    
+
 Definition interpret_all_with_fuel (instrs: list Instruction) (fuel: nat): VmResult :=
     interpret_all' instrs {| stack := []; pc := 0 ; memory := NatMap.empty nat |} fuel.
 
