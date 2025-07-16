@@ -119,13 +119,18 @@ Proof.
   inversion step_ok.
   - solve_complete nth_ok H4.
   - solve_complete nth_ok H4.
-  - solve_complete nth_ok H4.
   - subst.
     rewrite nth_ok in H2.
     injection H2 as H2.
     subst.
     simpl.
     rewrite H6.
+    reflexivity.
+  - subst.
+    rewrite nth_ok in H4.
+    injection H4 as H4.
+    subst.
+    simpl.
     reflexivity.
   - solve_complete nth_ok H4.
   - solve_complete nth_ok H4.
@@ -262,4 +267,18 @@ Proof.
     apply SISwap.
     exact nth_ok.
     reflexivity.
+Qed.
+
+Theorem interpret_correct:
+  forall instructions instruction stack pc memory out_state,
+    nth_error instructions pc = Some instruction ->
+    step {| stack := stack; pc := pc; memory := memory |} instructions out_state <->
+    interpret instruction {| stack := stack; pc := pc; memory := memory |} = Ok out_state.
+Proof.
+  intros.
+  split.
+  - apply interpret_complete.
+    exact H.
+  - apply interpret_sound.
+    exact H.
 Qed.
