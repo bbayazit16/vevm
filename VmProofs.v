@@ -282,3 +282,63 @@ Proof.
   - apply interpret_sound.
     exact H.
 Qed.
+
+(* interpret_all_sound_instruction_case *)
+Ltac ia_sic
+  instr instructions IH interpret_ok nth_err initial_state output_state :=
+  (* sso = single step output state *)
+  (* dro = destruct result output *)
+  destruct (interpret instr initial_state) as [sso_state|] eqn:dro_eq;
+  [ apply (@steps_transitive initial_state sso_state output_state instructions);
+    [ destruct initial_state as [stack pc memory];
+    (* forall instructions instruction stack pc memory output_state *)
+      apply (@interpret_sound instructions instr stack pc memory sso_state);
+      [ exact nth_err | exact dro_eq ]
+    | apply IH; exact interpret_ok ]
+  | discriminate interpret_ok ].
+
+Theorem interpret_all_sound:
+  forall fuel instructions output_state,
+    interpret_all' instructions
+    {| stack := []; pc := 0; memory := NatMap.empty nat |} fuel = Ok output_state ->
+      steps {| stack := []; pc := 0; memory := NatMap.empty nat |} instructions output_state.
+Proof.
+  intros fuel.
+  (* don't need: remember {| stack := []; pc := 0; memory := NatMap.empty nat |}
+    as initial_state_val eqn:initial_state_eq. *)
+  generalize {| stack := []; pc := 0; memory := NatMap.empty nat |} as initial_state.
+  induction fuel as [|fuel IH_fuel].
+  - intros initial_state instructions output_state interpret_ok.
+    simpl in interpret_ok.
+    discriminate interpret_ok.
+  - intros initial_state instructions output_state interpret_ok.
+    simpl in interpret_ok.
+    destruct (nth_error instructions (pc initial_state)) as [instr|] eqn:nth_err.
+    + destruct instr.
+      * ia_sic (IPush n) instructions IH_fuel interpret_ok nth_err initial_state output_state.
+      * ia_sic IMstore instructions IH_fuel interpret_ok nth_err initial_state output_state.
+      * ia_sic IMload instructions IH_fuel interpret_ok nth_err initial_state output_state.
+      * ia_sic IAdd instructions IH_fuel interpret_ok nth_err initial_state output_state.
+      * (* Needed because IOutput is separately matched in interpret_all *)
+        destruct initial_state as [stack pc memory].
+        -- destruct stack as [|a others] eqn:stack_destruct.
+          ++ subst.
+            simpl in interpret_ok.
+            discriminate interpret_ok.
+          ++ subst.
+             simpl in interpret_ok, nth_err.
+             injection interpret_ok as H_output_state_eq.
+             subst.
+             apply steps_transitive with (state2 := {| stack := [a]; pc := pc + 1; memory := memory |}).
+             ** apply interpret_sound with (IOutput).
+                --- exact nth_err.
+                --- simpl.
+                    reflexivity.
+             ** apply steps_reflexive.
+      * ia_sic IEq instructions IH_fuel interpret_ok nth_err initial_state output_state.
+      * ia_sic IJmpi instructions IH_fuel interpret_ok nth_err initial_state output_state.
+      * ia_sic IDup instructions IH_fuel interpret_ok nth_err initial_state output_state.
+      * ia_sic IPop instructions IH_fuel interpret_ok nth_err initial_state output_state.
+      * ia_sic ISwap instructions IH_fuel interpret_ok nth_err initial_state output_state.
+    + discriminate interpret_ok.
+Qed.

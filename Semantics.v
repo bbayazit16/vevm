@@ -106,6 +106,14 @@ Inductive step : VmState -> list Instruction -> VmState -> Prop :=
 Inductive steps : VmState -> list Instruction -> VmState -> Prop :=
   | steps_reflexive : forall state instrs,
       steps state instrs state
+    (* 
+        Take one step with step state1 instrs, obtaining state2.
+        Thus there's at least one step taken from there.
+
+        After obtaining state2, take arbitrary number of steps,
+        including possibly 0, and reach state3. There you get state3,
+        and thus => steps state1 instrs state3.
+    *)
   | steps_transitive : forall state1 state2 state3 instrs,
       step state1 instrs state2 ->
       steps state2 instrs state3 ->
