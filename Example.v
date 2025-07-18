@@ -18,7 +18,7 @@ Definition two_n_plus_eight_program (n: nat) : list Instruction := [
 
 Definition two_n_plus_eight (n: nat) := 2 * n + 8.
 
-Compute output (interpret_all_with_fuel (two_n_plus_eight_program 24) 6).
+(* Compute output (interpret_all_with_fuel (two_n_plus_eight_program 24) 6). *)
 
 Theorem two_n_plus_eight_correctness :
   forall (n: nat), exists (fuel: nat),

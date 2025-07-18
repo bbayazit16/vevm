@@ -139,9 +139,6 @@ Proof.
   discriminate H_halted.
 Qed.
 
-Definition well_formed_program (instructions: list Instruction) (output_state: VmState) : Prop :=
-  True.
-
 Ltac solve_complete nth_ok H :=
     subst;
     rewrite nth_ok in H;
@@ -502,21 +499,20 @@ Ltac rsse H1 H2 := rewrite H1; simpl; subst; exact H2.
 *)
 Theorem interpret_all_complete :
   forall instructions final_state,
-    well_formed_program instructions final_state ->
     steps {| stack := []; pc := 0 ; memory := NatMap.empty nat; halted := false |} instructions final_state ->
     has_halted final_state instructions ->
     exists fuel,
       interpret_all' instructions
       {| stack := []; pc := 0 ; memory := NatMap.empty nat; halted := false |} fuel = Ok final_state.
 Proof.
-  intros instructions final_state well_formed steps_ok halts_instrs.
+  intros instructions final_state steps_ok halts_instrs.
 
   induction steps_ok as [| s1 s2 s3 instrs IH].
   - destruct halts_instrs as [out [H1 [H2 H3]]].
     exists 1.
     apply halted_interpret_ok.
     exact H2.
-  - pose proof (IHsteps_ok well_formed halts_instrs) as H_fuel.
+  - pose proof (IHsteps_ok halts_instrs) as H_fuel.
     
     destruct H_fuel as [fuel_witness H_fuel_eq].
     exists (S fuel_witness).
