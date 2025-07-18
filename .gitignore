@@ -6,3 +6,5 @@
 *.glob
 *.cache
 .DS_STORE
+vm.ml
+vm.mli

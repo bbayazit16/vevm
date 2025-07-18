@@ -112,15 +112,3 @@ Definition interpret_all (instrs: list Instruction): VmResult :=
 
 Definition interpret_all_with_fuel (instrs: list Instruction) (fuel: nat): VmResult :=
     interpret_all' instrs {| stack := []; pc := 0 ; memory := NatMap.empty nat; halted := false |} fuel.
-
-
-(* Require Extraction.
-
-Extraction Language OCaml.
-Extract Constant Nat.add => "( + )".
-Extract Inductive nat => "int" ["0" "succ" ].
-Extract Inductive list => "list" [ "[]" "(::)" ].
-Extract Inductive option => "option" ["Some" "None"].
-
-
-Extraction "vm.ml" interpret. *)
